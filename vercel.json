@@ -10,10 +10,11 @@
     }
   },
   "env": {
-    "NEXT_PUBLIC_APP_URL": "@next_public_app_url",
     "DATABASE_URL": "@database_url",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "NEXTAUTH_URL": "@nextauth_url"
+    "SESSION_SECRET": "@session_secret",
+    "NODE_ENV": "@node_env",
+    "PORT": "@port",
+    "FRONTEND_URL": "@frontend_url"
   },
   "build": {
     "env": {
