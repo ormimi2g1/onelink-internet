@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import { prisma } from '../models/database';
+import { prisma } from '../models/prisma';
 
 const router = express.Router();
 
@@ -33,18 +33,6 @@ router.post('/register', async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         message: 'User with this email already exists'
-      });
-    }
-
-    // Check if phone number already exists
-    const existingPhone = await prisma.user.findUnique({
-      where: { phone: validatedData.phone }
-    });
-    
-    if (existingPhone) {
-      return res.status(400).json({
-        success: false,
-        message: 'User with this phone number already exists'
       });
     }
 
@@ -205,125 +193,6 @@ router.get('/me', async (req: Request, res: Response) => {
       message: 'Failed to get user information'
     });
   }
-});
-
-export default router;
-    });
-
-    // Set user in session
-    req.session.userId = user.id;
-
-    // Return user without password
-    const { passwordHash: _, ...userWithoutPassword } = user;
-    
-    res.status(201).json({
-      success: true,
-      message: 'User registered successfully',
-      data: userWithoutPassword
-    });
-
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: error.errors
-      });
-    }
-    
-    console.error('Registration error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-// Login endpoint
-router.post('/login', async (req, res) => {
-  try {
-    const validatedData = loginSchema.parse(req.body);
-    
-    // Find user
-    const user = db.getUserByEmail(validatedData.email);
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    // Check password
-    const isValidPassword = await bcrypt.compare(validatedData.password, user.passwordHash);
-    if (!isValidPassword) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    // Set user in session
-    req.session.userId = user.id;
-
-    // Return user without password
-    const { passwordHash: _, ...userWithoutPassword } = user;
-    
-    res.json({
-      success: true,
-      message: 'Login successful',
-      data: userWithoutPassword
-    });
-
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: error.errors
-      });
-    }
-    
-    console.error('Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-// Logout endpoint
-router.post('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Logout error:', err);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to logout'
-      });
-    }
-    
-    res.json({
-      success: true,
-      message: 'Logged out successfully'
-    });
-  });
-});
-
-// Get current user
-router.get('/me', (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({
-      success: false,
-      message: 'Not authenticated'
-    });
-  }
-
-  const { passwordHash: _, ...userWithoutPassword } = req.user;
-  
-  res.json({
-    success: true,
-    data: userWithoutPassword
-  });
 });
 
 export default router;

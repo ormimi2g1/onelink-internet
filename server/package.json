@@ -2,11 +2,11 @@
   "name": "onelink-backend",
   "version": "1.0.0",
   "description": "One Link Internet Backend API",
-  "main": "dist/index.js",
+  "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsx watch index.ts",
+    "start": "node dist/server.js",
+    "dev": "tsx watch server.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
@@ -27,7 +27,8 @@
     "passport-local": "^1.0.0",
     "prisma": "^6.11.1",
     "socket.io": "^4.8.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

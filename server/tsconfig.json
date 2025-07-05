@@ -3,28 +3,41 @@
     "target": "ES2020",
     "module": "commonjs",
     "lib": ["ES2020"],
-    "outDir": "../dist/server",
+    "outDir": "./dist",
     "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    "declaration": false,
+    "sourceMap": false,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "typeRoots": ["../node_modules/@types"]
+    "emitDecoratorMetadata": true
   },
   "include": [
-    "**/*.ts"
+    "server.ts",
+    "routes/**/*.ts",
+    "models/prisma.ts",
+    "types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "../dist",
-    "../.next"
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "complete.ts",
+    "index.ts",
+    "api.ts",
+    "auth-server.ts",
+    "minimal.ts",
+    "simple.ts",
+    "socket.ts",
+    "test.ts",
+    "models/database.ts",
+    "models/types.ts",
+    "middleware/**/*.ts"
   ]
 }

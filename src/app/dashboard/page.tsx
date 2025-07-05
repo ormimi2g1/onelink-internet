@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
-import { User, LogOut, Settings, CreditCard, Wifi, BarChart3, Phone, Mail, Package, Calendar, MapPin } from 'lucide-react';
+import { User, Settings, CreditCard, Wifi, BarChart3, Phone, Mail, Package, Calendar, MapPin } from 'lucide-react';
 
 interface ServicePlan {
   id: string;
@@ -35,7 +35,6 @@ export default function Dashboard() {
   const { user, isAuthenticated, loading, logout } = useAuth();
   const router = useRouter();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [loadingSubscriptions, setLoadingSubscriptions] = useState(true);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -57,14 +56,7 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
-    } finally {
-      setLoadingSubscriptions(false);
     }
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    router.push('/');
   };
 
   if (loading) {

@@ -19,7 +19,7 @@ model User {
   passwordHash      String
   firstName         String
   lastName          String
-  phone             String?
+  phone             String?             @unique
   role              Role                @default(CUSTOMER)
   isEmailVerified   Boolean             @default(false)
   isPhoneVerified   Boolean             @default(false)
