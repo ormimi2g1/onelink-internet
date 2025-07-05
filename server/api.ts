@@ -48,9 +48,6 @@ app.get('/api/plans', async (req, res) => {
           region: region,
           isActive: true 
         },
-        include: {
-          features: true
-        },
         orderBy: {
           price: 'asc'
         }
@@ -59,9 +56,6 @@ app.get('/api/plans', async (req, res) => {
       plans = await prisma.servicePlan.findMany({
         where: {
           isActive: true
-        },
-        include: {
-          features: true
         },
         orderBy: [
           { region: 'asc' },
@@ -124,10 +118,7 @@ app.get('/api/plans/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const plan = await prisma.servicePlan.findUnique({
-      where: { id },
-      include: {
-        features: true
-      }
+      where: { id }
     });
     
     if (!plan) {
