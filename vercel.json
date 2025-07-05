@@ -9,13 +9,6 @@
       "maxDuration": 30
     }
   },
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "SESSION_SECRET": "@session_secret",
-    "NODE_ENV": "@node_env",
-    "PORT": "@port",
-    "FRONTEND_URL": "@frontend_url"
-  },
   "build": {
     "env": {
       "NEXT_TELEMETRY_DISABLED": "1"
