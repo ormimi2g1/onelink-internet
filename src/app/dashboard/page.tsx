@@ -86,42 +86,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center transform rotate-45">
-                <div className="w-4 h-4 bg-white rounded-sm transform -rotate-45"></div>
-              </div>
-              <div>
-                <span className="text-xl font-bold text-gray-900">ONE LINK</span>
-                <span className="text-xl font-normal text-blue-600 ml-1">Internet</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-blue-600" />
-                </div>
-                <span className="text-sm font-medium text-gray-700">
-                  {user.firstName} {user.lastName}
-                </span>
-              </div>
-              
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-1 text-gray-600 hover:text-red-600 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="text-sm">Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>        {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Section */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <div className="flex items-center justify-between">
