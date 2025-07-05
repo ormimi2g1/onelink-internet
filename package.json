@@ -19,7 +19,8 @@
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force && npm run db:seed",
     "test:e2e": "node test-e2e.js",
-    "test:full": "npm run db:seed && npm run test:e2e"
+    "test:full": "npm run db:seed && npm run test:e2e",
+    "heroku-postbuild": "npm run build"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -77,5 +78,9 @@
     "nodemon": "^3.1.10",
     "tsx": "^4.20.3",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
   }
 }

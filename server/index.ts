@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { db } from './models/database';
-import { User } from './models/types';
+import { User as UserType } from './models/types';
 import authRoutes from './routes/auth';
 
 // Import types
@@ -14,7 +14,7 @@ import './types/express-session.d.ts';
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: UserType;
     }
   }
 }
@@ -22,11 +22,22 @@ declare global {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Allowed origins for CORS
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? [
+      'https://onelink-internet.vercel.app',
+      'https://your-custom-domain.com',
+      process.env.FRONTEND_URL
+    ].filter(Boolean) as string[]
+  : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'https://yourdomain.com' : 'http://localhost:3000',
-  credentials: true
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Rate limiting
@@ -43,7 +54,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Session middleware
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-super-secure-session-secret',
+  secret: process.env.SESSION_SECRET || 'your-super-secure-session-secret-change-this-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -62,7 +73,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoint
+// Health check endpoints
+app.get('/health', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'One Link Internet Backend is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ 
     success: true, 
@@ -108,7 +128,7 @@ app.get('/api/user/subscriptions', (req, res) => {
     });
   }
 
-  const subscriptions = db.getUserSubscriptions(req.user.id);
+  const subscriptions = db.getUserSubscriptions(req.user!.id);
   
   res.json({
     success: true,
@@ -124,7 +144,7 @@ app.get('/api/user/usage', (req, res) => {
     });
   }
 
-  const usage = db.getUserUsage(req.user.id);
+  const usage = db.getUserUsage(req.user!.id);
   
   res.json({
     success: true,
@@ -140,7 +160,7 @@ app.get('/api/user/speedtests', (req, res) => {
     });
   }
 
-  const speedTests = db.getUserSpeedTests(req.user.id);
+  const speedTests = db.getUserSpeedTests(req.user!.id);
   
   res.json({
     success: true,

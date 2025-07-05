@@ -101,7 +101,78 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   }
 };
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL 
+  ? `${process.env.NEXT_PUBLIC_API_URL}/api`
+  : 'http://localhost:5000/api';
+
+// Mock users for frontend-only testing
+const MOCK_USERS = [
+  {
+    id: '1',
+    email: 'customer1@onelink.ng',
+    password: 'Customer123!',
+    firstName: 'Adebayo',
+    lastName: 'Oladapo',
+    phone: '+2348012345678',
+    role: 'CUSTOMER' as const,
+    isEmailVerified: true,
+    isPhoneVerified: true,
+    createdAt: '2025-01-01T00:00:00.000Z',
+    updatedAt: '2025-01-01T00:00:00.000Z'
+  },
+  {
+    id: '2',
+    email: 'customer2@onelink.ng',
+    password: 'Customer123!',
+    firstName: 'Chiamaka',
+    lastName: 'Okoro',
+    phone: '+2348023456789',
+    role: 'CUSTOMER' as const,
+    isEmailVerified: true,
+    isPhoneVerified: true,
+    createdAt: '2025-01-01T00:00:00.000Z',
+    updatedAt: '2025-01-01T00:00:00.000Z'
+  },
+  {
+    id: '3',
+    email: 'customer3@onelink.ng',
+    password: 'Customer123!',
+    firstName: 'Olumide',
+    lastName: 'Adebayo',
+    phone: '+2348034567890',
+    role: 'CUSTOMER' as const,
+    isEmailVerified: true,
+    isPhoneVerified: true,
+    createdAt: '2025-01-01T00:00:00.000Z',
+    updatedAt: '2025-01-01T00:00:00.000Z'
+  },
+  {
+    id: '4',
+    email: 'admin@onelink.ng',
+    password: 'Admin123!',
+    firstName: 'Ibrahim',
+    lastName: 'Mohammed',
+    phone: '+2348045678901',
+    role: 'ADMIN' as const,
+    isEmailVerified: true,
+    isPhoneVerified: true,
+    createdAt: '2025-01-01T00:00:00.000Z',
+    updatedAt: '2025-01-01T00:00:00.000Z'
+  },
+  {
+    id: '5',
+    email: 'superadmin@onelink.ng',
+    password: 'SuperAdmin123!',
+    firstName: 'Funmi',
+    lastName: 'Adebayo',
+    phone: '+2348056789012',
+    role: 'SUPERADMIN' as const,
+    isEmailVerified: true,
+    isPhoneVerified: true,
+    createdAt: '2025-01-01T00:00:00.000Z',
+    updatedAt: '2025-01-01T00:00:00.000Z'
+  }
+];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
@@ -110,22 +181,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     dispatch({ type: 'AUTH_START' });
     
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      });
+      // Try backend first, fallback to mock
+      let user = null;
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ email, password }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        if (response.ok) {
+          user = data.data;
+        }
+      } catch (backendError) {
+        // Backend not available, use mock authentication
+        console.log('Backend not available, using mock authentication');
+        
+        const mockUser = MOCK_USERS.find(u => u.email === email && u.password === password);
+        if (mockUser) {
+          const { password: _, ...userWithoutPassword } = mockUser;
+          user = userWithoutPassword;
+          
+          // Store in localStorage for persistence
+          localStorage.setItem('mockAuthUser', JSON.stringify(user));
+        }
       }
 
-      dispatch({ type: 'AUTH_SUCCESS', payload: data.data });
+      if (!user) {
+        throw new Error('Invalid email or password');
+      }
+
+      dispatch({ type: 'AUTH_SUCCESS', payload: user });
     } catch (error) {
       dispatch({ 
         type: 'AUTH_FAILURE', 
@@ -174,13 +266,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
+      // Try backend logout first
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
     } catch (error) {
-      console.error('Logout error:', error);
+      console.log('Backend logout failed, using mock logout');
     } finally {
+      // Always clear local storage and logout
+      localStorage.removeItem('mockAuthUser');
       dispatch({ type: 'LOGOUT' });
     }
   };
@@ -189,6 +284,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
+      // Try backend auth check first
       const response = await fetch(`${API_BASE_URL}/auth/me`, {
         credentials: 'include',
       });
@@ -196,6 +292,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (response.ok) {
         const data = await response.json();
         dispatch({ type: 'AUTH_SUCCESS', payload: data.data });
+        return;
+      }
+    } catch (error) {
+      console.log('Backend auth check failed, checking mock auth');
+    }
+
+    // Fallback to mock authentication
+    try {
+      const mockUser = localStorage.getItem('mockAuthUser');
+      if (mockUser) {
+        const user = JSON.parse(mockUser);
+        dispatch({ type: 'AUTH_SUCCESS', payload: user });
       } else {
         dispatch({ type: 'LOGOUT' });
       }
