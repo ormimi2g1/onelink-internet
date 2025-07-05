@@ -12,10 +12,6 @@ module.exports = {
         'onelink-blue': '#1E40AF',
         'onelink-cyan': '#0891B2',
       },
-      fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'monospace'],
-      },
     },
   },
   plugins: [],
