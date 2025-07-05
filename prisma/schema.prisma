@@ -1,0 +1,290 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and profile management
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  passwordHash    String
+  firstName       String
+  lastName        String
+  phone           String   @unique
+  role            Role     @default(CUSTOMER)
+  isEmailVerified Boolean  @default(false)
+  isPhoneVerified Boolean  @default(false)
+  profileImageUrl String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  subscriptions    UserSubscription[]
+  usageData        UsageData[]
+  speedTests       SpeedTestResult[]
+  tickets          SupportTicket[]
+  payments         PaymentTransaction[]
+  ticketMessages   TicketMessage[]
+  chatMessages     ChatMessage[]
+  outageReports    NetworkOutage[]
+  notifications     Notification[]
+
+  @@map("users")
+}
+
+// Service plans available in different regions
+model ServicePlan {
+  id          String   @id @default(cuid())
+  name        String
+  region      String
+  speed       String
+  price       Int      // Price in kobo (NGN * 100)
+  currency    Currency @default(NGN)
+  type        PlanType
+  features    String[] // Array of features
+  isActive    Boolean  @default(true)
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  subscriptions UserSubscription[]
+
+  @@map("service_plans")
+}
+
+// User subscriptions to service plans
+model UserSubscription {
+  id               String            @id @default(cuid())
+  userId           String
+  planId           String
+  status           SubscriptionStatus @default(ACTIVE)
+  startDate        DateTime
+  nextRenewal      DateTime
+  monthlyFee       Int               // Fee in kobo
+  address          String
+  installationDate DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  // Relations
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan ServicePlan @relation(fields: [planId], references: [id])
+
+  @@map("user_subscriptions")
+}
+
+// Usage data tracking per user per month
+model UsageData {
+  id         String   @id @default(cuid())
+  userId     String
+  period     String   // YYYY-MM format
+  dataUsed   Float    // GB
+  dataLimit  Float    // GB (unlimited = -1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, period])
+  @@map("usage_data")
+}
+
+// Speed test results
+model SpeedTestResult {
+  id            String   @id @default(cuid())
+  userId        String
+  downloadSpeed Float    // Mbps
+  uploadSpeed   Float    // Mbps
+  ping          Float    // ms
+  jitter        Float    // ms
+  location      String
+  testDate      DateTime @default(now())
+  serverId      String
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("speed_test_results")
+}
+
+// Support tickets
+model SupportTicket {
+  id            String         @id @default(cuid())
+  userId        String
+  subject       String
+  description   String
+  status        TicketStatus   @default(OPEN)
+  priority      TicketPriority @default(MEDIUM)
+  assignedAgent String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relations
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages TicketMessage[]
+
+  @@map("support_tickets")
+}
+
+// Messages within support tickets
+model TicketMessage {
+  id       String   @id @default(cuid())
+  ticketId String
+  senderId String
+  message  String
+  isAgent  Boolean  @default(false)
+  sentAt   DateTime @default(now())
+
+  // Relations
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender User          @relation(fields: [senderId], references: [id])
+
+  @@map("ticket_messages")
+}
+
+// Real-time chat messages
+model ChatMessage {
+  id        String      @id @default(cuid())
+  roomId    String
+  senderId  String
+  message   String
+  type      MessageType @default(TEXT)
+  isRead    Boolean     @default(false)
+  timestamp DateTime    @default(now())
+
+  // Relations
+  sender User @relation(fields: [senderId], references: [id])
+
+  @@map("chat_messages")
+}
+
+// Payment transactions
+model PaymentTransaction {
+  id          String            @id @default(cuid())
+  userId      String
+  amount      Int               // Amount in kobo
+  currency    Currency          @default(NGN)
+  gateway     PaymentGateway
+  reference   String            @unique
+  status      TransactionStatus @default(PENDING)
+  description String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payment_transactions")
+}
+
+// Network outages tracking
+model NetworkOutage {
+  id            String        @id @default(cuid())
+  region        String
+  description   String
+  status        OutageStatus  @default(ONGOING)
+  startTime     DateTime
+  endTime       DateTime?
+  affectedUsers String[]      // Array of user IDs
+  reporterId    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  reporter User? @relation(fields: [reporterId], references: [id])
+
+  @@map("network_outages")
+}
+
+// User notifications
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// Enums
+enum Role {
+  CUSTOMER
+  ADMIN
+  SUPERADMIN
+}
+
+enum Currency {
+  NGN
+}
+
+enum PlanType {
+  RESIDENTIAL
+  SME
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+}
+
+enum PaymentGateway {
+  PAYSTACK
+  FLUTTERWAVE
+  QUICKTELLER
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+}
+
+enum OutageStatus {
+  ONGOING
+  RESOLVED
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  ERROR
+  SUCCESS
+}
