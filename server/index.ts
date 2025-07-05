@@ -94,11 +94,9 @@ app.get('/api/user', (req, res) => {
     });
   }
 
-  const { passwordHash, ...userWithoutPassword } = req.user;
-  
   res.json({
     success: true,
-    data: userWithoutPassword
+    data: req.user
   });
 });
 

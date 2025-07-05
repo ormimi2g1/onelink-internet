@@ -692,7 +692,7 @@ const server = http.createServer(async (req, res) => {
       
       // Validate the update
       const updateSchema = z.object({
-        status: z.enum(['ACTIVE', 'PAUSED', 'CANCELLED']).optional(),
+        status: z.enum(['ACTIVE', 'SUSPENDED', 'CANCELLED']).optional(),
         address: z.string().optional()
       });
       
